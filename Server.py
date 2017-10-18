@@ -69,9 +69,9 @@ def execute(cmd):
 
 
 # HOST = '192.168.157.1'  #This is the listening Host.
-HOST = input("Enter the interface to listen: ")
+#HOST = input("Enter the interface to listen: ")
 s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
-s.bind((HOST, 0))
+s.bind(("", 0))
 s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
 s.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
 print ("Server Started......")
