@@ -10,5 +10,4 @@ End goal:
 
 Intermediate goal 1:
 •	Command line tool that sends and receive messages over ping.
-•	Looks for and identifies peers in a network. 
-•	Broad cast ping messages to all. 
+
