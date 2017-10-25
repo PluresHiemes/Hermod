@@ -1,6 +1,7 @@
 import socket
 import re
 import os, sys, socket, struct, select, time, threading
+import thread
 
 # HOST = socket.gethostbyname(socket.gethostname())
 ##The pinging part starts here
@@ -60,31 +61,11 @@ def do_one(dest_addr, timeout, payload):
 
 
 # The sniffer part starts here..!!!
-def writer(d):
-    f = open('/root/log.txt', 'a')
-    f.write(d)
-
-
-def clearfile():
-    f = open('/root/log.txt', 'w')
-    f.write("")
-
-
-def reader():
-    f = open('/root/log.txt', 'r')
-    con = f.readline()
-    content = con.replace("@@", "")
-    clearfile()
-    return content
-
-
 def startsniffing():
-    HOST = '10.1.49.136'
     s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
-    s.bind((HOST, 0))
+    s.bind(("", 0))
     s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
-    print
-    "Sniffer Started....."
+    print("Sniffer Started.....")
     while 1:
         data = s.recvfrom(65565)
         d1 = str(data[0])
@@ -92,21 +73,19 @@ def startsniffing():
         data1 = re.search('@@(.*)', d1)
         datapart = data1.group(0)
         # print datapart
-        writer(datapart)
-        # command = data1.group(0)
-        # cmd = command[2:]
-        # ip = d2[2:-5]
-        # print command
-        # print ip
-        # print data
         print(datapart)
         reader()
+
+try:
+	thread.start_new_thread(startsniffing, ())
+except:
+	print("error starting thread")
 
 ip = input("Enter the destination IP: ")
 delay = 1
 while True:
-    command = input("type shit in: ")
+    command = input("Message: ")
     if command == "exit":
         break
     do_one(ip, delay, command)
-    print("Executing Command....\n")
+
