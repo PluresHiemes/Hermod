@@ -1,0 +1,1 @@
+All of the code in this folder was created by Paul Lambert and is located at: https://github.com/CryptoUSF/Wallet 

@@ -2,6 +2,7 @@ import socket
 import re
 import os, sys, socket, struct, select, time, threading
 import thread
+from cipher.chacha_poly import ChaCha
 
 # HOST = socket.gethostbyname(socket.gethostname())
 ##The pinging part starts here
@@ -73,19 +74,45 @@ def startsniffing():
         data1 = re.search('@@(.*)', d1)
         datapart = data1.group(0)
         # print datapart
-        print(datapart)
+        print(">:" + datapart)
         reader()
 
-try:
-	thread.start_new_thread(startsniffing, ())
-except:
-	print("error starting thread")
+def keyAgreement(mod, mySecret, userPublic):
+	return (userPublic ** mySecret) % mod
 
-ip = input("Enter the destination IP: ")
-delay = 1
-while True:
-    command = input("Message: ")
-    if command == "exit":
-        break
-    do_one(ip, delay, command)
+def createPublic(mod, base, mySecret):
+	return (base ** mySecret) % mod
 
+def encrypt(message, sharedKey):
+	cha = ChaCha(sharedKey)
+	return cha.encrypt(message)
+
+def decrypt(message, sharedKey):
+	cha = ChaCha(sharedKey)
+	cha.decrypt(message)
+	return 0
+
+def main():
+	userPublic = 2
+	mySecret = 1
+	mod = 23
+	base = 5
+	myPublic = createPublic(mod, base, mySecret)
+	sharedSecret = keyAgreement(mod, mySecret, userPublic)
+	try:
+		print("sniff")
+		#thread.start_new_thread(startsniffing, ())
+	except:
+		print("error starting thread")
+	
+	ip = raw_input("Enter the destination IP: ")
+	delay = 1
+	while True:
+   		message = encrypt(raw_input(""), sharedSecret)
+    	if command == "exit":
+			break
+		do_one(ip, delay, encrypted)
+
+
+
+main()
