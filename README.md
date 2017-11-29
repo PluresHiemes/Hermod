@@ -45,8 +45,13 @@ User has following options:
 
 
 Every user has: 
+
 a private key (4 digits)
+
 a list of known users:
-	which contains:
-		The base and mod value for diffie helman
-		Its "friends" public key, recieved during key agreement  and shared secret
+
+which contains:
+
+-The base and mod value for diffie helman
+
+-Its "friends" public key, recieved during key agreement  and shared secret
