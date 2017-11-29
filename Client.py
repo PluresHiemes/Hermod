@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import socket
 import re
 import os, sys, socket, struct, select, time, threading
@@ -93,13 +94,75 @@ def decrypt(message, sharedKey):
 	return 0
 
 def main():
-	userPublic = 2
-	mySecret = 1
-	mod = 23
-	base = 5
-	myPublic = createPublic(mod, base, mySecret)
-	sharedSecret = keyAgreement(mod, mySecret, userPublic)
-	try:
+    knownUsers = {}
+    myUser = ""
+    while True:
+        toClean = raw_input("command: ")
+        command = toClean.strip()
+        if(command[:4] == "exit"):
+            print("exiting program, bye...")
+            break
+        elif(command[:5] == "-user"):
+            myUser = command[5:].strip()
+        elif(command[:5] == "--new"):
+            #for optimal security we would calculate a random mod and base that
+            #match
+            newUser = User(null, 23, 5, random.randint(1000, 9999), -1)
+            values = command.split(" ")
+            newUser.setName(values[values.index("-user")+1]
+            if("-gen" in command):
+                #create new key for the user
+            else:
+                newUser.setShared(getpass.getpass("Input your private key: "))
+            
+        elif(command[:4] == "-new"):
+            commands = command[4:].split(" ")
+            if("-gen" in commands):
+                a
+            elif("-key" in commands):
+                knownUsers[myUser].setShared(list.index("-key") + 1)
+            else:
+                print("Either input a specific key or use -gen to create a new"+
+                        " one")
+        elif(command[:3] == "-eU"):
+            rest = command[3:].strip()
+            tempUser = User(null, -1, -1, -1, -1)
+            #-name -mod -base -pub -shared
+            things = rest.split(" ")
+            while(len(things) > 0):
+                temp = things.pop(0)
+                if(temp == "-name"):
+                    tempUser.setName(things.pop(0))
+                elif(temp == "-mod"):
+                    tempUser.setMod(things.pop(0))
+                elif(temp == "-base"):
+                    tempUser.setBase(things.pop(0))
+                elif(temp == "-pub"):
+                    tempUser.setPub(things.pop(0))
+                elif(temp == "-shared"):
+                    tempUser.setShared(things.pop(0)) 
+                elif(temp == "-myPub"):
+                    tempUser.setShared(things.pop(0))
+            if(tempUser.getName() in knownUsers):
+                targetUser = knownUsers[tempUser.getName()]
+                if(tempUser.getMod() > 0):
+                    targetUser.setMod(tempUser.getMod())
+                if(tempUser.getBase() > 0):
+                    targetUser.setBase(tempUser.getBase())
+                if(tempUser.getPub() > 0):
+                    targetUser.setPub(tempUser.getPub())
+                if(tempUser.getShared() > 0):
+                    targetUser.setShared(tempUser.getShared())
+            else:
+                knownUsers[tempUser.getName()] = tempUser     
+        elif(command[:6] == "-agree"):
+            #-u -mod -base -key
+            if("-u" in command):
+                
+        elif(command[:5] == "-load"):
+            a
+         	
+    try:
 		print("sniff")
 		#thread.start_new_thread(startsniffing, ())
 	except:
@@ -107,12 +170,11 @@ def main():
 	
 	ip = raw_input("Enter the destination IP: ")
 	delay = 1
-	while True:
-   		message = encrypt(raw_input(""), sharedSecret)
-    	if command == "exit":
-			break
-		do_one(ip, delay, encrypted)
-
-
+    while True:
+        temp = raw_input("")
+        message = encrypt(temp, sharedSecret)
+        if (temp == "exit"):
+            break
+        do_one(ip, delay, encrypted)
 
 main()
