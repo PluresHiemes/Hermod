@@ -1,24 +1,20 @@
 # Hermod
 Cryptography Project 
 
-Name: Hermod (a Secure Communication channel)
+Hermod (a Secure Communication channel)
 
-Team: Douglas Mejia & Pedram Namiranian
+by Douglas Mejia & Pedram Namiranian
 
-Project Goal: 
-
-Create a chat application that sends encrypted message through ping(ICMP) that runs on the terminal using Elliptic Curve Encryption 
+Named after the Norse messenger to the gods, Hermod is a python terminal-based chat application that allows the users to send secure messages over Ping. Every message is encrypted using Elliptic curve technologies. 
 
 
-The chat application will do the following:
+The chat application will allow you to do the following:
 
 Send encryted messages 
 Recieve and decrypt messages 
 Save known users and their information 
 Authenticate users
  
- 
-Current Design:
 
 Programs allows users to create a private key and public keys. The program also allows a user to store the public keys of known users. 
 All this information will be stored in a Pickle file. The same pickle file will be used to load user information.
