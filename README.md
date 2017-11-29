@@ -10,7 +10,7 @@ Project Goal:
 Create a chat application that sends encrypted message through ping(ICMP) that runs on the terminal using Elliptic Curve Encryption 
 
 
-The Chat application will do the following:
+The chat application will do the following:
 
 Send encryted messages 
 Recieve and decrypt messages 
@@ -23,7 +23,7 @@ Current Design:
 Programs allows users to create a private key and public keys. The program also allows a user to store the public keys of known users. 
 All this information will be stored in a Pickle file. The same pickle file will be used to load user information.
 
-Then user has following options:
+User has following options:
 
 -new    : update/create private key 
 
