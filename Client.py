@@ -4,6 +4,9 @@ import re
 import os, sys, socket, struct, select, time, threading
 import thread
 from cipher.chacha_poly import ChaCha
+from cipher.ecc import string_to_int
+from cipher.curves import SECP256k1
+from os import urandom
 
 # HOST = socket.gethostbyname(socket.gethostname())
 ##The pinging part starts here
@@ -95,7 +98,7 @@ def decrypt(message, sharedKey):
 
 def main():
     knownUsers = {}
-    myUser = ""
+    myUser = null
     while True:
         toClean = raw_input("command: ")
         command = toClean.strip()
@@ -103,7 +106,7 @@ def main():
             print("exiting program, bye...")
             break
         elif(command[:5] == "-user"):
-            myUser = command[5:].strip()
+            myUser = knownUsers[getpass.getpass("Username: ").strip()]
         elif(command[:5] == "--new"):
             #for optimal security we would calculate a random mod and base that
             #match
@@ -112,18 +115,12 @@ def main():
             newUser.setName(values[values.index("-user")+1]
             if("-gen" in command):
                 #create new key for the user
+                curve = SECP_256k1()
+                privateKey = string_to_int(os.urandom(curve.coord_size)[:4])
+                newUser.setShared(privateKey)
             else:
                 newUser.setShared(getpass.getpass("Input your private key: "))
-            
-        elif(command[:4] == "-new"):
-            commands = command[4:].split(" ")
-            if("-gen" in commands):
-                a
-            elif("-key" in commands):
-                knownUsers[myUser].setShared(list.index("-key") + 1)
-            else:
-                print("Either input a specific key or use -gen to create a new"+
-                        " one")
+            knownUsers[newUser.getName()] = newUser
         elif(command[:3] == "-eU"):
             rest = command[3:].strip()
             tempUser = User(null, -1, -1, -1, -1)
@@ -156,9 +153,9 @@ def main():
             else:
                 knownUsers[tempUser.getName()] = tempUser     
         elif(command[:6] == "-agree"):
-            #-u -mod -base -key
-            if("-u" in command):
-                
+            values = command.split(" ")
+            user = knownUsers[values[values.index("-u") + 1]] 
+            user.setShared(keyAgreement(user.getMod(), myUser.getShared(), user.getPub())
         elif(command[:5] == "-load"):
             a
          	
