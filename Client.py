@@ -96,6 +96,44 @@ def decrypt(message, sharedKey):
 	cha.decrypt(message)
 	return 0
 
+def helpAll():
+    totalHelp = ""
+    totalHelp += "___________________________________________________________\n"
+    totalHelp += helpNew()
+    totalHelp += "___________________________________________________________\n"
+    totalHelp += helpLoad()  
+    totalHelp += "___________________________________________________________\n"
+    totalHelp += helpSave()  
+    totalHelp += "___________________________________________________________\n"
+    totalHelp += helpEdit()
+    totalHelp += "___________________________________________________________\n"
+    totalHelp += helpAgee()
+    totalHelp += "___________________________________________________________\n"
+    return totalHelp
+
+def helpNew():
+    help = ""
+    help += "+-------+"
+    help += "| --new |"
+    help += "+-------+"
+   #1234567890123456789012345678901234567890123456789012345678901234567890123456
+    help += "Cretes a new user for you with a new private key.\n\n"
+    help += "-gen: Signals whether you want a randomly generated key or you "+
+                "wish to enter your own key.\n"
+    
+
+def helpEdit():
+    print("")
+
+def helpAgree():
+    print("")
+
+def helpSave():
+    print("")
+
+def helpLoad():
+    print("")
+
 def main():
     knownUsers = {}
     myUser = null
@@ -157,7 +195,16 @@ def main():
             user = knownUsers[values[values.index("-u") + 1]] 
             user.setShared(keyAgreement(user.getMod(), myUser.getShared(), user.getPub())
         elif(command[:5] == "-load"):
-            a
+            print(command)
+        elif(command[:5] == "-save"):
+            print(command)
+        elif(command[:5] == "-help"):
+            help = ""
+            
+            print(help)
+        else:
+            print(command + " is not a valid command, please retry or type "+
+                    "-help for the list of commands")
          	
     try:
 		print("sniff")
