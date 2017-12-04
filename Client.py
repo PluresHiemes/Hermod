@@ -7,7 +7,7 @@ import getpass
 import pickle
 from User import User
 from cipher.chacha_poly import ChaCha
-from cipher.ecc import string_to_int
+from cipher.ecc import string_to_int, int_to_string
 from cipher.curves import SECP_256k1
 from os import urandom
 from random import randint
@@ -67,23 +67,6 @@ def do_one(dest_addr, timeout, payload):
     send_one_ping(my_socket, dest_addr, my_ID, payload)
     my_socket.close()
     return delay
-
-
-# The sniffer part starts here..!!!
-def startsniffing():
-    s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
-    s.bind(("", 0))
-    s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
-    print("Sniffer Started.....")
-    while 1:
-        data = s.recvfrom(65565)
-        d1 = str(data[0])
-        d2 = str(data[1])
-        data1 = re.search('@@(.*)', d1)
-        datapart = data1.group(0)
-        # print datapart
-        print(">:" + datapart)
-        reader()
 
 def helpAll():
     totalHelp = ""
@@ -153,13 +136,83 @@ def helpLoad():
     help += "+-------+\n"
     return help
 
+def threadSniffer():
+    global mailBox
+    global seen
+    global knownUsers
+    global myUser
+    global outUser
+    global verified
 
+    s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+    s.bind(("", 0))
+    s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+    print("Sniffer Started.....")
+    while 1:
+        data = s.recvfrom(65565)
+        #actual message
+        d1 = str(data[0])
+        #sender data
+        d2 = str(data[1])
+        
+        values = d0.split("||")
+        if(d2 not in seen):
+            userName = values[values.index("user") + 1]
+            seen[d2] =  [userName, -1]
+            if(userName in knownUsers.keys()):
+                targetUser = knownUsers[userName]
+                encDemand = values[values.index("auth") + 1]
+                demand = decrypt(encDemand, targetUser.getShared())
+                ruth = encrypt(eval(demand), targetUser.getShared())
+                authPair = authenticate(10)
+                seen[d2][1] = authPair[1]
+                encReq = encrypt(authPair[0], targetUser.getShared())
+                sending = "||user||" + outUser + "||auth||" + encReq
+                sending += "||ruth||" + ruth + "||"
+                mailbox[userName] = []
+                do_one(d2, 11, sending)
+            else:
+                do_one(d2, 1, "invalid")
+        elif(seen[d2][1] != -100.10233):
+            userName = seen[d2][0]
+            if(userName not in knownUsers.keys()):
+                break
+            targetUser = knownUsers[userName]
+            temp = decrypt(d1[d1.index("@@") + 2:], targetUser.getShared())
+            newVals = temp.split("||")
+            sending = ""
+            if("auth" in newVals):
+                encDemand = newVals[newVals.index("auth") + 1]
+                demand = decrypt(encDemand, targetUser.getShared())
+                response = encrypt(eval(demand), targetUser.getShared())
+                sending += "||ruth||" + response + "||"    
+            if("ruth" in newVals):
+                encResponse = newVals[newVals.index("ruth") + 1]
+                response = decrypt(encResponse, targetUser.getShared())
+                if(seen[d2][1] == response):
+                    verified.append(userName)
+                else:
+                    seen[d2][1] = -100.10233
+            if("msg" in newVals):
+                mailbox[userName].append(">: " + newVals(newVals.index("msg")+1))
+                
+        else:
+            do_one(d2, 1, "you have been banned from speaking to this user")        
+
+        data1 = re.search('@@(.*)', d1)
+        datapart = data1.group(0)
+    
 
 def keyAgreement(mod, mySecret, userPublic):
-	return (userPublic ** mySecret) % mod
+    val1 = int(userPublic)
+    val2 = int(mySecret)
+    val3 = int(mod)
+    a = (val1 ** val2) % val3
+    print(a)
+    return a
 
 def createPublic(mod, base, mySecret):
-	return (base ** mySecret) % mod
+	return (int(base) ** int(mySecret)) % int(mod)
 
 def encrypt(message, sharedKey):
 	cha = ChaCha(sharedKey)
@@ -178,11 +231,18 @@ def authenticate(level):
     expected = eval(request)
     return [request, expected]
 
-speakingTo = []
+verified = []
+seen = {}
 mailBox = {}
+knownUsers = {}
+myUser = None
+outUser = "frank"
 def main():
-    knownUsers = {}
-    myUser = None
+    global mailBox
+    global verified
+    global seen
+    global knownUsers
+    global outUser
     while True:
         toClean = raw_input("command: ")
         command = toClean.strip()
@@ -191,6 +251,8 @@ def main():
             break
         elif(command[:5] == "-user"):
             myUser = knownUsers[getpass.getpass("Username: ").strip()]
+        elif(command[:6] == "-alias"):
+            outUser = values[values.index("-alias") + 1]
         elif(command[:5] == "--new"):
             #for optimal security we would calculate a random mod and base that
             #match
@@ -205,7 +267,8 @@ def main():
                 privateKey2 = int_to_string(privateKey)
                 newUser.setShared(string_to_int(privateKey2[:4]))
             else:
-                newUser.setShared(getpass.getpass("Input your private key: "))
+                key = getpass.getpass("Input your private key: ")
+                newUser.setShared(key)
             knownUsers[newUser.getName()] = newUser
         elif(command[:3] == "-eU"):
             rest = command[3:].strip()
@@ -224,8 +287,6 @@ def main():
                     tempUser.setPub(things.pop(0))
                 elif(temp == "-shared"):
                     tempUser.setShared(things.pop(0)) 
-                elif(temp == "-myPub"):
-                    tempUser.setShared(things.pop(0))
             if(tempUser.getName() in knownUsers):
                 targetUser = knownUsers[tempUser.getName()]
                 if(tempUser.getMod() > 0):
@@ -245,17 +306,54 @@ def main():
         elif(command[:5] == "-load"):
             values = command.split(" ")
             fileLoc = values[values.index("-f") + 1]
-            newList = pickle.load(open(fileLoc, "w"))
+            newList = pickle.load(open(fileLoc, "r"))
             knownUsers.update(newList)
         elif(command[:5] == "-save"):
             values = command.split(" ")
             fileLoc = values[values.index("-f") + 1]
-            if(os.path.abspath(fileLoc)[:1] == "C"):
-                print("Files are reccomended to be saved on detachable memory.")
-                answer = raw_input("Do you wish to change the location (y/n): ")
-                if("y" in answer):
-                    fileLoc = raw_input("New location: ")
             pickle.dump(knownUsers, open(fileLoc, "w"))
+        elif(command[:8] == "-connect"):
+            values = command.split(" ")
+            user = ""
+            ip = ""
+            if("-new" in values):
+                ip = values[values.index("-ip") + 1]
+                username = values[values.index("-u") + 1]
+                user = knownUsers[username]
+                #INCLUDE AUTHENTICATION ORIGINAL MESSAGE
+                sending = "||user||" + outUser 
+            elif("-u" in values):
+                user = knownUsers[values[values.index("-u") + 1]]
+                for(a in seen.keys()):
+                    if(seen[a][0] == user):
+                        ip = a
+                        break
+            else:
+                user = knownUsers[raw_input("Target's username: ")]
+                if("-ip" in values):
+                    ip = values[values.index("-ip") + 1]
+                else:
+                    ip = raw_input("Please input IP: ")
+            while True:
+                for a in mailBox[user.getName()]:
+                    print(a)
+                message = raw_input("\n")
+                enc = encrypt("||msg||" + message, user.getShared())
+                do_one(ip, 1, enc)
+        elif(command[:5] == "-check"):
+            print("User : New Message(s) : Verified")
+            for user in mailBox.getKeys():
+                if(len(mailBox[user]) > 0):
+                    printing = user + " : "
+                    if(mailBox[user][-1][:2] == ">:"):
+                        printing += "yes : "
+                    else:
+                        printing += "no : "
+                    if(user in verified):
+                        printing += "yes"
+                    else:
+                        printing += "no"
+                    print(printing)
         elif(command[:5] == "-help"):
             help = ""
             if("new" in command):
@@ -281,19 +379,6 @@ def main():
             print(command + " is not a valid command, please retry or type "+
                     "-help for the list of commands")
 main()
-         	
-try:
-    print("sniff")
-    #thread.start_new_thread(startsniffing, ())
-except:
-    print("error starting thread")
-ip = raw_input("Enter the destination IP: ")
-delay = 1
-while True:
-    temp = raw_input("")
-    message = encrypt(temp, sharedSecret)
-    if (temp == "exit"):
-        break
-    do_one(ip, delay, encrypted)
+v
 
 

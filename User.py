@@ -17,38 +17,38 @@ class User():
         self.pub = pubKey
         self.shared = sharedVal
 
-    def getName():
+    def getName(self):
         return self.userName
     
-    def getMod():
+    def getMod(self):
         return self.mod
     
-    def getBase():
+    def getBase(self):
         return self.base
 
-    def getPub():
+    def getPub(self):
         return self.pub
 
-    def getShared():
+    def getShared(self):
         return self.shared
 
-    def setName(newName):
+    def setName(self, newName):
         self.userName = newName
         return self.userName
     
-    def setMod(newMod):
+    def setMod(self, newMod):
         self.mod = newMod
         return self.mod
     
-    def setBase(newBase):
+    def setBase(self, newBase):
         self.base = newBase
         return self.base
 
-    def setPub(newPub):
+    def setPub(self, newPub):
         self.pub = newPub
         return self.pub
 
-    def setShared(newShare):
+    def setShared(self, newShare):
         self.shared = newShare
         return self.shared
 
