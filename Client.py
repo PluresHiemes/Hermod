@@ -3,10 +3,14 @@ import socket
 import re
 import os, sys, socket, struct, select, time, threading
 import thread
+import getpass
+import pickle
+from User import User
 from cipher.chacha_poly import ChaCha
 from cipher.ecc import string_to_int
-from cipher.curves import SECP256k1
+from cipher.curves import SECP_256k1
 from os import urandom
+from random import randint
 
 # HOST = socket.gethostbyname(socket.gethostname())
 ##The pinging part starts here
@@ -81,6 +85,76 @@ def startsniffing():
         print(">:" + datapart)
         reader()
 
+def helpAll():
+    totalHelp = ""
+    totalHelp += "___________________________________________________________\n"
+    totalHelp += helpNew()
+    totalHelp += "___________________________________________________________\n"
+    totalHelp += helpLoad()  
+    totalHelp += "___________________________________________________________\n"
+    totalHelp += helpSave()  
+    totalHelp += "___________________________________________________________\n"
+    totalHelp += helpEdit()
+    totalHelp += "___________________________________________________________\n"
+    totalHelp += helpAgree()
+    totalHelp += "___________________________________________________________\n"
+    return totalHelp
+
+def helpNew():
+    help = ""
+    help += "+-------+\n"
+    help += "| --new |\n"
+    help += "+-------+\n"
+    help += "Cretes a new user for you with a new private key.\n\n"
+    help += "-user: Username you wish to save this account to\n"
+    help += "-gen: Signals whether you want a randomly generated\n"
+    help += "\tkey or you wish to enter your own key. If this flag\n"
+    help += "\tis not present you will be asked to input your key.\n"
+    return help
+
+def helpEdit():
+    help = ""
+    help += "+-------+\n"
+    help += "|  -eU  |\n"
+    help += "+-------+\n"
+    #-name -mod -base -pub -shared
+    help += "The name flag is required. If the user specified by\n"
+              #1234567890123456789012345678901234567890123456789012
+    help += "\tthe name flag then the values will be updated based\n"
+    help += "\ton the information given by the flags. Otherwise, a\n"
+    help += "\tnew user will be created. In the case of a new user\n"
+    help += "\tall fields are required except the shared value.\n"
+    help += "-name: The name of the user to create or change\n"
+    help += "-mod: Value used in modular divison in Diffie-Hellman\n" 
+    help += "-base: Base for the exponential multiplication in\n"
+    help += "\tDiffie-Hellman\n"
+    help += "-pub: Public key of the user you are speaking to\n"
+    help += "-shared: Shared secret between you and user\n"
+    return help
+    
+def helpAgree():
+    help = ""
+    help += "+-------+\n"
+    help += "|-agree |\n"
+    help += "+-------+\n"
+    return help
+
+def helpSave():
+    help = ""
+    help += "+-------+\n"
+    help += "| -save |\n"
+    help += "+-------+\n"
+    return help
+
+def helpLoad():
+    help = ""
+    help += "+-------+\n"
+    help += "| -load |\n"
+    help += "+-------+\n"
+    return help
+
+
+
 def keyAgreement(mod, mySecret, userPublic):
 	return (userPublic ** mySecret) % mod
 
@@ -96,47 +170,19 @@ def decrypt(message, sharedKey):
 	cha.decrypt(message)
 	return 0
 
-def helpAll():
-    totalHelp = ""
-    totalHelp += "___________________________________________________________\n"
-    totalHelp += helpNew()
-    totalHelp += "___________________________________________________________\n"
-    totalHelp += helpLoad()  
-    totalHelp += "___________________________________________________________\n"
-    totalHelp += helpSave()  
-    totalHelp += "___________________________________________________________\n"
-    totalHelp += helpEdit()
-    totalHelp += "___________________________________________________________\n"
-    totalHelp += helpAgee()
-    totalHelp += "___________________________________________________________\n"
-    return totalHelp
+def authenticate(level):
+    request = randint(0,23)
+    operations = "*%-+/"
+    for i in range(0,level):
+        request += operations[randint(0,len(operations))] + randint(0,23)
+    expected = eval(request)
+    return [request, expected]
 
-def helpNew():
-    help = ""
-    help += "+-------+"
-    help += "| --new |"
-    help += "+-------+"
-   #1234567890123456789012345678901234567890123456789012345678901234567890123456
-    help += "Cretes a new user for you with a new private key.\n\n"
-    help += "-gen: Signals whether you want a randomly generated key or you "+
-                "wish to enter your own key.\n"
-    
-
-def helpEdit():
-    print("")
-
-def helpAgree():
-    print("")
-
-def helpSave():
-    print("")
-
-def helpLoad():
-    print("")
-
+speakingTo = []
+mailBox = {}
 def main():
     knownUsers = {}
-    myUser = null
+    myUser = None
     while True:
         toClean = raw_input("command: ")
         command = toClean.strip()
@@ -148,20 +194,22 @@ def main():
         elif(command[:5] == "--new"):
             #for optimal security we would calculate a random mod and base that
             #match
-            newUser = User(null, 23, 5, random.randint(1000, 9999), -1)
             values = command.split(" ")
-            newUser.setName(values[values.index("-user")+1]
+            userName = values[values.index("-user") + 1]
+            random = string_to_int(os.urandom(9999)[:4])
+            newUser = User(userName, 23, 5, random, -1)
             if("-gen" in command):
                 #create new key for the user
                 curve = SECP_256k1()
-                privateKey = string_to_int(os.urandom(curve.coord_size)[:4])
-                newUser.setShared(privateKey)
+                privateKey = string_to_int(os.urandom(curve.coord_size))
+                privateKey2 = int_to_string(privateKey)
+                newUser.setShared(string_to_int(privateKey2[:4]))
             else:
                 newUser.setShared(getpass.getpass("Input your private key: "))
             knownUsers[newUser.getName()] = newUser
         elif(command[:3] == "-eU"):
             rest = command[3:].strip()
-            tempUser = User(null, -1, -1, -1, -1)
+            tempUser = User(None, -1, -1, -1, -1)
             #-name -mod -base -pub -shared
             things = rest.split(" ")
             while(len(things) > 0):
@@ -193,32 +241,59 @@ def main():
         elif(command[:6] == "-agree"):
             values = command.split(" ")
             user = knownUsers[values[values.index("-u") + 1]] 
-            user.setShared(keyAgreement(user.getMod(), myUser.getShared(), user.getPub())
+            user.setShared(keyAgreement(user.getMod(), myUser.getShared(), user.getPub()))
         elif(command[:5] == "-load"):
-            print(command)
+            values = command.split(" ")
+            fileLoc = values[values.index("-f") + 1]
+            newList = pickle.load(open(fileLoc, "w"))
+            knownUsers.update(newList)
         elif(command[:5] == "-save"):
-            print(command)
+            values = command.split(" ")
+            fileLoc = values[values.index("-f") + 1]
+            if(os.path.abspath(fileLoc)[:1] == "C"):
+                print("Files are reccomended to be saved on detachable memory.")
+                answer = raw_input("Do you wish to change the location (y/n): ")
+                if("y" in answer):
+                    fileLoc = raw_input("New location: ")
+            pickle.dump(knownUsers, open(fileLoc, "w"))
         elif(command[:5] == "-help"):
             help = ""
-            
+            if("new" in command):
+                help += helpNew()
+            elif("load" in command.lower()):
+                help += helpLoad()
+            elif("save" in command.lower()):
+                help += helpSave()
+            elif("edit" in command.lower()):
+                help += helpEdit()
+            elif("agree" in command.lower()):
+                help += helpAgree()
+            elif("all" in command.lower()):
+                help += helpAll()
+            else:
+                help += "--new: creates a new username for you\n"
+                help += "-load: loads the list of known users from memory\n"
+                help += "-save: saves the list of known users to a file\n"
+                help += "-eU: edits an existing user or creates a new one\n"
+                help += "-agree: creates key agreement between you and a user\n"
             print(help)
         else:
             print(command + " is not a valid command, please retry or type "+
                     "-help for the list of commands")
-         	
-    try:
-		print("sniff")
-		#thread.start_new_thread(startsniffing, ())
-	except:
-		print("error starting thread")
-	
-	ip = raw_input("Enter the destination IP: ")
-	delay = 1
-    while True:
-        temp = raw_input("")
-        message = encrypt(temp, sharedSecret)
-        if (temp == "exit"):
-            break
-        do_one(ip, delay, encrypted)
-
 main()
+         	
+try:
+    print("sniff")
+    #thread.start_new_thread(startsniffing, ())
+except:
+    print("error starting thread")
+ip = raw_input("Enter the destination IP: ")
+delay = 1
+while True:
+    temp = raw_input("")
+    message = encrypt(temp, sharedSecret)
+    if (temp == "exit"):
+        break
+    do_one(ip, delay, encrypted)
+
+

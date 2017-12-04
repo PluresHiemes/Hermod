@@ -8,11 +8,11 @@ pub = the public key of the user that this object will represent
 shared = the shared secret between this user and the user running the 
             program
 """
-class User(Object):
+class User():
     
     def __init__(self, name, modVal, baseVal, pubKey, sharedVal):
         self.userName = name
-        self.mod = mod
+        self.mod = modVal
         self.base = baseVal
         self.pub = pubKey
         self.shared = sharedVal
