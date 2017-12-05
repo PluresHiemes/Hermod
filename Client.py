@@ -226,7 +226,6 @@ def authenticate(level):
     for i in range(0,level):
         request += operations[randint(0,len(operations)-1)]
         request += str(randint(1,23))
-    print(request)
     expected = eval(request)
     return [request, expected]
 
