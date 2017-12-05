@@ -50,8 +50,7 @@ def send_one_ping(my_socket, dest_addr, ID, onlydata):
     header = struct.pack(
         "bbHHh", ICMP_ECHO_REQUEST, 0, socket.htons(my_checksum), ID, 1
     )
-    packet = header 
-    packet += bytes(data, 'utf-8')
+    packet = header + bytes(data).encode('utf-8')
     my_socket.sendto(packet, (dest_addr, 1))  # Don't know about the 1
 
 
