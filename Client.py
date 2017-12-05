@@ -353,11 +353,14 @@ def main():
                     ip = values[values.index("-ip") + 1]
                 else:
                     ip = raw_input("Please input IP: ")
-            while(len(mailBox[user.getName()]) > 0):
+            if(user.getName() not in seenMail):
+		seenMail[user.getName()] = []
+	    if(user.getName() not in mailBox):
+		mailBox[user.getName()] = []
+	    while(len(mailBox[user.getName()]) > 0):
                 temp = mailBox[user.getName()].pop(0)
                 seenMail[user.getName()].append(temp)
                 print(temp)
-	    seenMail[user.getName()] = []
             while True:
                 while(len(mailBox[user.getName()]) > 0):
                     temp = mailBox[user.getName()].pop(0)
@@ -371,7 +374,7 @@ def main():
                 do_one(ip, 1, enc)
         elif(command[:6] == "-check"):
             print("User : New Message(s) : Verified")
-            for user in mailBox.getKeys():
+            for user in mailBox:
                 if(len(mailBox[user]) > 0):
                     printing = user + " : "
                     if(mailBox[user][-1][:2] == ">:"):
