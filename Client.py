@@ -6,7 +6,7 @@ import thread
 import getpass
 import pickle
 from User import User
-from cipher.chacha_poly import ChaCha
+from cipher.aes_siv import AES_SIV
 from cipher.ecc import string_to_int, int_to_string
 from cipher.curves import SECP_256k1
 from os import urandom
@@ -215,24 +215,18 @@ def createPublic(mod, base, mySecret):
 	return (int(base) ** int(mySecret)) % int(mod)
 
 def encrypt(message, sharedKey):
-    key = sharedKey
-    while(len(key)<32):
-        key = key * 10
-    cha = ChaCha(key)
-    return cha.encrypt(message)
-
+    return message
+    
 def decrypt(message, sharedKey):
-    key = sharedKey
-    while(len(key)<32):
-        key = key * 10
-    cha = ChaCha(key)
-    return cha.decrypt(message)
+    return message
 
 def authenticate(level):
-    request = randint(0,23)
+    request = str(randint(0,23))
     operations = "*%-+/"
     for i in range(0,level):
-        request += operations[randint(0,len(operations))] + randint(0,23)
+        request += operations[randint(0,len(operations)-1)]
+        request += str(randint(0,23))
+    print(request)
     expected = eval(request)
     return [request, expected]
 
@@ -345,7 +339,7 @@ def main():
                 encReq = encrypt(request, user.getShared())
                 #INCLUDE AUTHENTICATION ORIGINAL MESSAGE
                 sending = "||user||" + outUser + "||auth||"
-                sending += encReq + "||ruth||" + encRuth
+                sending += encReq + "||ruth||" + str(encRuth)
                 do_one(ip, 1, sending) 
             elif("-u" in values):
                 user = knownUsers[values[values.index("-u") + 1]]
