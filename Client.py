@@ -169,7 +169,7 @@ def threadSniffer():
                 encReq = encrypt(authPair[0], targetUser.getShared())
                 sending = "||user||" + outUser + "||auth||" + encReq
                 sending += "||ruth||" + ruth + "||"
-                mailbox[userName] = []
+                mailBox[userName] = []
                 do_one(d2, 11, sending)
             else:
                 do_one(d2, 1, "invalid")
@@ -369,7 +369,7 @@ def main():
 		seenMail[user.getName()].append(message)
                 enc = encrypt("||msg||" + message, user.getShared())
                 do_one(ip, 1, enc)
-        elif(command[:5] == "-check"):
+        elif(command[:6] == "-check"):
             print("User : New Message(s) : Verified")
             for user in mailBox.getKeys():
                 if(len(mailBox[user]) > 0):
