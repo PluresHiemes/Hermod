@@ -363,7 +363,7 @@ def main():
                     print(temp)
                     seenMail[user.getName()].append(temp)
                 message = raw_input("\n")
-                seenMail.append(message)
+                seenMail[user.getName()].append(message)
                 enc = encrypt("||msg||" + message, user.getShared())
                 do_one(ip, 1, enc)
         elif(command[:5] == "-check"):
