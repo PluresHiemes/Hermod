@@ -215,13 +215,18 @@ def createPublic(mod, base, mySecret):
 	return (int(base) ** int(mySecret)) % int(mod)
 
 def encrypt(message, sharedKey):
-	cha = ChaCha(sharedKey)
-	return cha.encrypt(message)
+    key = sharedKey
+    while(len(key)<32):
+        key = key * 10
+    cha = ChaCha(key)
+    return cha.encrypt(message)
 
 def decrypt(message, sharedKey):
-	cha = ChaCha(sharedKey)
-	cha.decrypt(message)
-	return 0
+    key = sharedKey
+    while(len(key)<32):
+        key = key * 10
+    cha = ChaCha(key)
+    return cha.decrypt(message)
 
 def authenticate(level):
     request = randint(0,23)
@@ -234,6 +239,7 @@ def authenticate(level):
 verified = []
 seen = {}
 mailBox = {}
+seenMail = {}
 knownUsers = {}
 myUser = None
 outUser = "frank"
@@ -243,6 +249,7 @@ def main():
     global seen
     global knownUsers
     global outUser
+    global seenMail
     while True:
         toClean = raw_input("command: ")
         command = toClean.strip()
@@ -252,6 +259,7 @@ def main():
         elif(command[:5] == "-user"):
             myUser = knownUsers[getpass.getpass("Username: ").strip()]
         elif(command[:6] == "-alias"):
+            values = command.split(" ")
             outUser = values[values.index("-alias") + 1]
         elif(command[:5] == "--new"):
             #for optimal security we would calculate a random mod and base that
@@ -312,6 +320,15 @@ def main():
             values = command.split(" ")
             fileLoc = values[values.index("-f") + 1]
             pickle.dump(knownUsers, open(fileLoc, "w"))
+        elif(command[:4] == "-pub"):
+            values = command.split(" ")
+            if("-u" in values):
+                user = knownUsers[values[values.index("-u") + 1]]
+                print(createPublic(user.getMod(), user.getBase(), myUser.getShared()))
+            else:
+                mod = values[values.index("-mod") + 1]
+                base = values[values.index("-base") + 1]
+                print(createPublic(mod, base, myUser.getShared()))
         elif(command[:8] == "-connect"):
             values = command.split(" ")
             user = ""
@@ -320,11 +337,19 @@ def main():
                 ip = values[values.index("-ip") + 1]
                 username = values[values.index("-u") + 1]
                 user = knownUsers[username]
+                fakeRuth = 23
+                encRuth = encrypt(fakeRuth, user.getShared())
+                authPair = authenticate(11)
+                request = authPair[0]
+                seen[ip] = [username, authPair[1]]
+                encReq = encrypt(request, user.getShared())
                 #INCLUDE AUTHENTICATION ORIGINAL MESSAGE
-                sending = "||user||" + outUser 
+                sending = "||user||" + outUser + "||auth||"
+                sending += encReq + "||ruth||" + encRuth
+                do_one(ip, 1, sending) 
             elif("-u" in values):
                 user = knownUsers[values[values.index("-u") + 1]]
-                for(a in seen.keys()):
+                for a in seen.keys():
                     if(seen[a][0] == user):
                         ip = a
                         break
@@ -334,10 +359,17 @@ def main():
                     ip = values[values.index("-ip") + 1]
                 else:
                     ip = raw_input("Please input IP: ")
+            while(len(mailBox[user.getName()]) > 0):
+                temp = mailBox[user.getName()].pop(0)
+                seenMail[user.getName()].append(temp)
+                print(temp)
             while True:
-                for a in mailBox[user.getName()]:
-                    print(a)
+                while(len(mailBox[user.getName()]) > 0):
+                    temp = mailBox[user.getName()].pop(0)
+                    print(temp)
+                    seenMail[user.getName()].append(temp)
                 message = raw_input("\n")
+                seenMail.append(message)
                 enc = encrypt("||msg||" + message, user.getShared())
                 do_one(ip, 1, enc)
         elif(command[:5] == "-check"):
@@ -379,6 +411,5 @@ def main():
             print(command + " is not a valid command, please retry or type "+
                     "-help for the list of commands")
 main()
-v
 
 
