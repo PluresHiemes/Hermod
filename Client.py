@@ -66,7 +66,7 @@ def do_one(dest_addr, timeout, payload):
 
     send_one_ping(my_socket, dest_addr, my_ID, payload)
     my_socket.close()
-    return delay
+    return timeout
 
 def helpAll():
     totalHelp = ""
