@@ -341,6 +341,7 @@ def main():
                 sending = "||user||" + outUser + "||auth||"
                 sending += encReq + "||ruth||" + str(encRuth)
                 do_one(ip, 1, sending) 
+		mailBox[user.getName()] = []
             elif("-u" in values):
                 user = knownUsers[values[values.index("-u") + 1]]
                 for a in seen.keys():
@@ -357,7 +358,6 @@ def main():
                 temp = mailBox[user.getName()].pop(0)
                 seenMail[user.getName()].append(temp)
                 print(temp)
-	    mailBox[user.getName()] = []
             while True:
                 while(len(mailBox[user.getName()]) > 0):
                     temp = mailBox[user.getName()].pop(0)
