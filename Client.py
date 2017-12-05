@@ -357,6 +357,7 @@ def main():
                 temp = mailBox[user.getName()].pop(0)
                 seenMail[user.getName()].append(temp)
                 print(temp)
+	    seenMail[user.getName()] = []
             while True:
                 while(len(mailBox[user.getName()]) > 0):
                     temp = mailBox[user.getName()].pop(0)
