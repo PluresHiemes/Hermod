@@ -94,7 +94,7 @@ def siv_decrypt(key, encrypted_string, ad_list):
     if t == iv:
         return pt
     else:
-        raise 'SIV Integrity Check Error'
+        raise Exception('SIV Integrity Check Error')
 
 class AES_SIV(object):
     """ An object wrapper for AES-SIV """

@@ -5,6 +5,8 @@ import os, sys, socket, struct, select, time, threading
 import thread
 import getpass
 import pickle
+import hashlib
+import hmac
 from User import User
 from cipher.aes_siv import AES_SIV
 from cipher.ecc import string_to_int, int_to_string
@@ -50,7 +52,9 @@ def send_one_ping(my_socket, dest_addr, ID, onlydata):
     header = struct.pack(
         "bbHHh", ICMP_ECHO_REQUEST, 0, socket.htons(my_checksum), ID, 1
     )
-    packet = header + bytes(data).encode('utf-8')
+
+    print("data is:" + onlydata)
+    packet = header + bytes((data))
     my_socket.sendto(packet, (dest_addr, 1))  # Don't know about the 1
 
 
@@ -215,10 +219,20 @@ def createPublic(mod, base, mySecret):
 	return (int(base) ** int(mySecret)) % int(mod)
 
 def encrypt(message, sharedKey):
-    return message
+    key = hmac.new(str(sharedKey),"",hashlib.sha256)
+    cipher = AES_SIV(key.hexdigest())
+    ad_list = ['']
+    cipher_text = cipher.encrypt(str(message), [''] )
+    return cipher_text
     
 def decrypt(message, sharedKey):
-    return message
+    key = hmac.new(str(sharedKey),"",hashlib.sha256)
+    cipher = AES_SIV(key.hexdigest())
+    ad_list = ['']
+    decrypt_text = cipher.decrypt(str(message), [''] )
+    text = decrypt_text[7:]
+    return decrypt_text
+
 
 def authenticate(level):
     request = str(randint(1,23))
